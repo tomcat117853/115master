@@ -16,7 +16,7 @@
       <div
         v-else-if="videoCover.isReady"
         :id="`gallery-${props.pickCode}`"
-        class="pswp-gallery"  <!-- PhotoSwipe 图库类名 -->
+        class="pswp-gallery"
         :class="styles.cover.container"
       >
         <!-- 循环渲染每个视频缩略图 -->
@@ -24,11 +24,11 @@
           v-for="(thumbnail, index) in videoCover.state"
           :key="index"
           :class="[styles.cover.thumbItem]"
-          @click.prevent.stop="openPhotoSwipe(index)"  <!-- 点击缩略图打开 PhotoSwipe 查看器 -->
+          @click.prevent.stop="openPhotoSwipe(index)"
         >
           <img
-            :src="thumbnail.img"  <!-- 缩略图图片地址 -->
-            :alt="`视频封面 ${index + 1}`"  <!-- 图片描述 -->
+            :src="thumbnail.img"
+            :alt="`视频封面 ${index + 1}`"
             :class="styles.cover.thumbImage"
           >
         </a>
