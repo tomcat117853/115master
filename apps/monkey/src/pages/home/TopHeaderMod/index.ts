@@ -132,13 +132,16 @@ export class TopHeaderMod extends BaseMod {
 
   /** 切换时间排序 */
   private toggleTimeSort() {
-    const listCellNode = document.querySelector('.list-contents') || document.querySelector('.list-thumb')
-    if (!listCellNode) return
+    // 直接获取正确的列表容器
+    const listContainer = document.querySelector('.list-contents') || document.querySelector('.list-thumb')
+    if (!listContainer) return
 
-    const itemNodes = Array.from(listCellNode.querySelectorAll('li'))
-    const videoItems = itemNodes.filter(item => {
-      const iv = item.getAttribute('iv')
-      return iv === '1' // 只处理视频文件
+    // 获取所有文件项
+    const allItems = Array.from(listContainer.querySelectorAll('li'))
+    
+    // 过滤出视频文件
+    const videoItems = allItems.filter(item => {
+      return item.getAttribute('iv') === '1'
     })
 
     if (videoItems.length === 0) return
@@ -151,53 +154,53 @@ export class TopHeaderMod extends BaseMod {
 
     if (isSorted) {
       // 已经排序，取消排序（恢复原始顺序）
-      // 重新加载文件列表
       location.reload()
     } else {
       // 未排序，按时长从小到大排序
-      const sortedItems = [...videoItems].sort((a, b) => {
-        // 获取时长元素
-        const durationANode = a.querySelector('.duration')
-        const durationBNode = b.querySelector('.duration')
-        
-        // 获取时长文本
-        const durationAText = durationANode?.textContent?.trim() || '0:00'
-        const durationBText = durationBNode?.textContent?.trim() || '0:00'
+      // 先解析所有视频的时长
+      const videosWithDuration = videoItems.map(item => {
+        const durationNode = item.querySelector('.duration')
+        const durationText = durationNode?.textContent?.trim() || '0:00'
         
         // 解析时长为秒数
         const parseDuration = (timeStr: string): number => {
-          const parts = timeStr.split(':').map(Number).reverse()
+          const parts = timeStr.split(':').map(Number)
           let seconds = 0
-          if (parts.length >= 1) seconds += parts[0] // 秒
-          if (parts.length >= 2) seconds += parts[1] * 60 // 分
-          if (parts.length >= 3) seconds += parts[2] * 3600 // 时
+          if (parts.length === 3) {
+            // HH:MM:SS
+            seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+          } else if (parts.length === 2) {
+            // MM:SS
+            seconds = parts[0] * 60 + parts[1]
+          }
           return seconds
         }
         
-        const secondsA = parseDuration(durationAText)
-        const secondsB = parseDuration(durationBText)
-        
-        return secondsA - secondsB
+        return {
+          item,
+          duration: parseDuration(durationText)
+        }
       })
-
-      // 保存非视频文件的原始顺序
-      const nonVideoItems = itemNodes.filter(item => {
-        const iv = item.getAttribute('iv')
-        return iv !== '1'
+      
+      // 按时长排序
+      videosWithDuration.sort((a, b) => a.duration - b.duration)
+      
+      // 提取排序后的视频项
+      const sortedVideos = videosWithDuration.map(v => v.item)
+      
+      // 过滤出非视频文件
+      const nonVideoItems = allItems.filter(item => {
+        return item.getAttribute('iv') !== '1'
       })
 
       // 先清空容器
-      while (listCellNode.firstChild) {
-        listCellNode.removeChild(listCellNode.firstChild)
+      while (listContainer.firstChild) {
+        listContainer.removeChild(listContainer.firstChild)
       }
 
       // 先添加非视频文件，再添加排序后的视频文件
-      nonVideoItems.forEach(item => {
-        listCellNode.appendChild(item)
-      })
-      sortedItems.forEach(item => {
-        listCellNode.appendChild(item)
-      })
+      nonVideoItems.forEach(item => listContainer.appendChild(item))
+      sortedVideos.forEach(item => listContainer.appendChild(item))
     }
   }
 
