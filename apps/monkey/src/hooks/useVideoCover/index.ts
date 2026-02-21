@@ -98,7 +98,7 @@ const getCacheKey = (sha1: string, time: number): string => `${sha1}_${time}`
  */
 function calculateVideoCoverTimes(duration: number, coverNum: number): number[] {
   /** 偏移量 */
-  const offset = duration / 5
+  const offset = duration / 10
   /** 获取最小时间 */
   const minTime = offset
   /** 获取最大时间 */

@@ -57,7 +57,7 @@ const FILELIST_VIDEO_COVER_NUM = 10
 const styles = clsx({
   // 容器样式
   container: {
-    main: 'h-24 w-full max-w-214 px-20 [content-visibility:auto]',
+    main: 'h-24 w-full max-w-428 px-20 [content-visibility:auto]',
     content:
       'bg-base-300 relative flex h-full items-center overflow-hidden rounded',
   },
