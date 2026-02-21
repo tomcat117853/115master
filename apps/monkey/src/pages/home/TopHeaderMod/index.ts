@@ -154,36 +154,86 @@ export class TopHeaderMod extends BaseMod {
 
     if (isSorted) {
       // 已经排序，取消排序（恢复原始顺序）
-      location.reload()
+      // 不使用 location.reload()，而是重新获取并恢复原始顺序
+      this.restoreOriginalOrder(listContainer, allItems)
     } else {
       // 未排序，按时长从小到大排序
       // 先解析所有视频的时长
       const videosWithDuration = videoItems.map(item => {
+        const fileName = item.querySelector('.name')?.textContent?.trim() || 'unknown'
+        
+        // 尝试多种方式获取时长信息
+        let durationText = '0:00'
+        let duration = 0
+        
+        // 方式1：查找 .duration 元素（用户提供的位置）
         const durationNode = item.querySelector('.duration')
-        const durationText = durationNode?.textContent?.trim() || '0:00'
+        if (durationNode) {
+          // 优先从 duration 属性获取
+          const durationAttr = durationNode.getAttribute('duration')
+          if (durationAttr) {
+            durationText = durationAttr
+            console.log(`找到 duration 属性: ${durationAttr}`)
+          } else {
+            // 其次从文本内容获取
+            durationText = durationNode.textContent?.trim() || '0:00'
+            console.log(`找到 .duration 元素文本: ${durationText}`)
+          }
+        }
         
         // 解析时长为秒数
-        const parseDuration = (timeStr: string): number => {
-          const parts = timeStr.split(':').map(Number)
-          let seconds = 0
-          if (parts.length === 3) {
-            // HH:MM:SS
-            seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
-          } else if (parts.length === 2) {
-            // MM:SS
-            seconds = parts[0] * 60 + parts[1]
+        if (durationText !== '0:00') {
+          const parseDuration = (timeStr: string): number => {
+            const parts = timeStr.split(':').map(Number)
+            let seconds = 0
+            
+            if (parts.length === 3) {
+              // HH:MM:SS
+              seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+            } else if (parts.length === 2) {
+              // MM:SS
+              seconds = parts[0] * 60 + parts[1]
+            }
+            
+            return seconds
           }
-          return seconds
+          
+          duration = parseDuration(durationText)
         }
+        
+        console.log(`文件 ${fileName} 时长: ${durationText} (${duration} 秒)`)
         
         return {
           item,
-          duration: parseDuration(durationText)
+          fileName,
+          duration,
+          originalText: durationText // 保存原始文本用于调试
         }
       })
       
+      // 生成日志
+      const logData = {
+        timestamp: new Date().toISOString(),
+        beforeSort: videosWithDuration.map(v => ({
+          fileName: v.fileName,
+          originalText: v.originalText,
+          duration: v.duration
+        })),
+        afterSort: []
+      }
+      
       // 按时长排序
       videosWithDuration.sort((a, b) => a.duration - b.duration)
+      
+      // 记录排序后的结果
+      logData.afterSort = videosWithDuration.map(v => ({
+        fileName: v.fileName,
+        originalText: v.originalText,
+        duration: v.duration
+      }))
+      
+      // 输出日志到控制台
+      console.log('=== 视频排序日志 ===', logData)
       
       // 提取排序后的视频项
       const sortedVideos = videosWithDuration.map(v => v.item)
@@ -202,6 +252,17 @@ export class TopHeaderMod extends BaseMod {
       nonVideoItems.forEach(item => listContainer.appendChild(item))
       sortedVideos.forEach(item => listContainer.appendChild(item))
     }
+  }
+
+  /** 恢复原始顺序 */
+  private restoreOriginalOrder(listContainer: Element, originalItems: Element[]) {
+    // 先清空容器
+    while (listContainer.firstChild) {
+      listContainer.removeChild(listContainer.firstChild)
+    }
+    
+    // 按照原始顺序添加回去
+    originalItems.forEach(item => listContainer.appendChild(item))
   }
 
   /** 修正右键菜单位置 */
