@@ -51,7 +51,7 @@ const props = defineProps<{
 }>()
 
 /** 文件列表视频封面数量 */
-const FILELIST_VIDEO_COVER_NUM = 5
+const FILELIST_VIDEO_COVER_NUM = 10
 
 /** 样式常量定义 */
 const styles = clsx({
