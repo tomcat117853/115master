@@ -1,3 +1,7 @@
+/**
+ * 文件列表修改模块
+ * 负责处理115网盘文件列表的各种增强功能
+ */
 import { unsafeWindow } from '$'
 import { BaseMod } from '@/pages/home/BaseMod'
 import { FileListType } from '@/pages/home/types'
@@ -14,18 +18,23 @@ import { FileItemModVideoCover } from './FileItemMod/videoCover'
 import { FileListScrollHistory } from './scrollHistory'
 import './index.css'
 
+/**
+ * 文件项修改器列表
+ * 按顺序应用到每个文件项上
+ */
 const itemMods = [
-  FileItemModFolderLink,
-  FileItemModExtInfo,
-  FileItemModActressInfo,
-  FileItemModVideoCover,
-  FileItemModExtMenu,
-  FileItemModClickPlay,
-  FileItemModDownload,
+  FileItemModFolderLink,     // 文件夹链接修改器
+  FileItemModExtInfo,        // 扩展信息修改器
+  FileItemModActressInfo,     // 演员信息修改器
+  FileItemModVideoCover,      // 视频封面修改器
+  FileItemModExtMenu,         // 扩展菜单修改器
+  FileItemModClickPlay,       // 点击播放修改器
+  FileItemModDownload,        // 下载功能修改器
 ]
 
 /**
  * 文件列表修改器
+ * 负责管理文件列表的变化监听、文件项的修改和滚动历史记录
  */
 class FileListMod extends BaseMod {
   /** 日志 */
@@ -37,6 +46,9 @@ class FileListMod extends BaseMod {
   /** 文件列表滚动位置记录 */
   private scrollHistory: FileListScrollHistory | null = null
 
+  /**
+   * 构造函数
+   */
   constructor() {
     super()
     this.init()
@@ -51,20 +63,22 @@ class FileListMod extends BaseMod {
     )
   }
 
-  /** 获取文件列表dom */
+  /**
+   * 获取文件列表DOM容器
+   */
   get listCellNode() {
     return document.querySelector<HTMLElement>('.list-cell') ?? null
   }
 
   /**
-   * 获取文件列表内容节点
+   * 获取文件列表内容节点（列表视图）
    */
   get listContentsNode() {
     return this.listCellNode?.querySelector<HTMLElement>('.list-contents')
   }
 
   /**
-   * 获取文件列表内容节点
+   * 获取文件列表缩略图节点（网格视图）
    */
   get listThumbNode() {
     return this.listCellNode?.querySelector<HTMLElement>('.list-thumb')
@@ -82,9 +96,9 @@ class FileListMod extends BaseMod {
    */
   get listType(): FileListType {
     if (this.listContentsNode) {
-      return FileListType.list
+      return FileListType.list  // 列表视图
     }
-    return FileListType.grid
+    return FileListType.grid   // 网格视图
   }
 
   /**
@@ -173,6 +187,7 @@ class FileListMod extends BaseMod {
       itemModLoader.load()
       this.itemModLoaderMaps.set(item, itemModLoader)
     }
+    
     // 销毁旧 Item 修改器
     for (const [key, value] of this.itemModLoaderMaps.entries()) {
       // 如果 li Node 存在，则跳过

@@ -1,3 +1,7 @@
+/**
+ * 播放器上下文管理模块
+ * 负责初始化和管理播放器的各个功能模块
+ */
 import type { EmitFn, InjectionKey, Ref, ShallowRef, ToRefs } from 'vue'
 import type { usePlayerCoreDecorator } from './playerCore/usePlayerCore'
 import type { Events } from '@/components/XPlayer/events'
@@ -5,7 +9,6 @@ import type { XPlayerEmit, XPlayerProps } from '@/components/XPlayer/types'
 import type { Logger } from '@/utils/logger'
 import { useVModels } from '@vueuse/core'
 import {
-
   inject,
   provide,
   ref,
@@ -13,10 +16,7 @@ import {
 import { useShortcuts } from '@/components/XPlayer/components/Shortcuts/shortcuts.hooks'
 import { EventMitt } from '@/components/XPlayer/events'
 import { xPlayerLogger } from '@/components/XPlayer/utils/logger'
-import {
-
-  useSwitchPlayerCore,
-} from './playerCore/usePlayerCore'
+import { useSwitchPlayerCore } from './playerCore/usePlayerCore'
 import { useContextMenu } from './useContextMenu'
 import { useControls } from './useControls'
 import { useCssVar } from './useCssVar'
@@ -35,7 +35,8 @@ import { useTransform } from './useTransform'
 import { useVideoEnhance } from './useVideoEnhance'
 
 /**
- * 播放器引用
+ * 播放器引用接口
+ * 定义播放器需要的DOM元素引用
  */
 export interface PlayerRefs {
   /** 播放器元素引用 */
@@ -45,7 +46,8 @@ export interface PlayerRefs {
 }
 
 /**
- * 播放器上下文
+ * 播放器上下文接口
+ * 定义播放器的所有功能模块和状态
  */
 export interface PlayerContext {
   /** 根引用 */
@@ -54,7 +56,7 @@ export interface PlayerContext {
   rootEmit: EmitFn<XPlayerEmit>
   /** 根属性 */
   rootProps: XPlayerProps
-  /** 根属性 */
+  /** 根属性的响应式引用 */
   rootPropsVm: ToRefs<XPlayerProps>
   /** 驱动 */
   driver: ReturnType<typeof useSwitchPlayerCore>
@@ -80,7 +82,7 @@ export interface PlayerContext {
   thumbnailSettings: ReturnType<typeof useThumbnailSettings>
   /** HUD显示 */
   hud: ReturnType<typeof useHud>
-  /** 变量 */
+  /** CSS变量 */
   cssVar: ReturnType<typeof useCssVar>
   /** 视频增强 */
   videoEnhance: ReturnType<typeof useVideoEnhance>
@@ -94,7 +96,7 @@ export interface PlayerContext {
   playerCore: Ref<ReturnType<typeof usePlayerCoreDecorator> | undefined>
   /** 播放设置 */
   playSettings: ReturnType<typeof usePlaySettings>
-  /** 事件 */
+  /** 事件发射器 */
   eventMitt: EventMitt<Events>
   /** 日志 */
   logger: InstanceType<typeof Logger>
@@ -102,11 +104,17 @@ export interface PlayerContext {
 
 /**
  * 播放器上下文符号
+ * 用于Vue的provide/inject系统
  */
 export const PlayerSymbol: InjectionKey<PlayerContext> = Symbol('XPlayer')
 
 /**
- * 播放器 Provide
+ * 播放器上下文提供函数
+ * 初始化和管理播放器的各个功能模块
+ * @param refs - 播放器DOM引用
+ * @param rootProps - 播放器属性
+ * @param rootEmit - 播放器事件发射器
+ * @returns PlayerContext - 播放器上下文
  */
 export function usePlayerProvide(
   // 根引用
@@ -116,6 +124,7 @@ export function usePlayerProvide(
   // 根事件
   rootEmit: EmitFn<XPlayerEmit>,
 ) {
+  // 初始化播放器上下文
   const context: PlayerContext = {
     refs: {
       rootRef: refs.rootRef,
@@ -135,6 +144,7 @@ export function usePlayerProvide(
 
   /**
    * 播放器驱动核心
+   * 负责根据视频源类型切换不同的播放器核心实现
    */
   context.driver = useSwitchPlayerCore(context)
 
@@ -142,27 +152,27 @@ export function usePlayerProvide(
   const popupManager = usePopupManager(context)
   context.popupManager = popupManager
 
-  /** 倍速 */
+  /** 倍速控制 */
   const playbackRate = usePlaybackRate(context)
   context.playbackRate = playbackRate
 
-  /** 全屏 */
+  /** 全屏控制 */
   const fullscreen = useFullscreen(context)
   context.fullscreen = fullscreen
 
-  /** 进度条 */
+  /** 进度条控制 */
   const progressBar = useProgressBar(context)
   context.progressBar = progressBar
 
-  /** 控制栏 */
+  /** 控制栏管理 */
   const controls = useControls(context)
   context.controls = controls
 
-  /** 字幕 */
+  /** 字幕管理 */
   const subtitles = useSubtitles(context)
   context.subtitles = subtitles
 
-  /** 源 */
+  /** 视频源管理 */
   const source = useSources(context)
   context.source = source
 
@@ -170,7 +180,7 @@ export function usePlayerProvide(
   const shortcuts = useShortcuts(context)
   context.shortcuts = shortcuts
 
-  /** 画中画 */
+  /** 画中画控制 */
   const pictureInPicture = usePictureInPicture(context)
   context.pictureInPicture = pictureInPicture
 
@@ -186,7 +196,7 @@ export function usePlayerProvide(
   const hud = useHud(context)
   context.hud = hud
 
-  /** 变量 */
+  /** CSS变量管理 */
   const cssVar = useCssVar(context)
   context.cssVar = cssVar
 
@@ -206,12 +216,16 @@ export function usePlayerProvide(
   const playSettings = usePlaySettings(context)
   context.playSettings = playSettings
 
+  // 提供播放器上下文给子组件
   provide(PlayerSymbol, context)
   return context
 }
 
 /**
  * 使用播放器上下文
+ * 在播放器的子组件中获取播放器上下文
+ * @returns PlayerContext - 播放器上下文
+ * @throws Error - 如果在播放器组件外使用
  */
 export function usePlayerContext() {
   const context = inject(PlayerSymbol)

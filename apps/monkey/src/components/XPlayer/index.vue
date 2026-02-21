@@ -79,6 +79,10 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * XPlayer 视频播放器主组件
+ * 提供完整的视频播放功能，包括播放控制、字幕、全屏等
+ */
 import type { PlayerContext } from './hooks/usePlayerProvide'
 import type { XPlayerEmit, XPlayerProps } from './types'
 import { shallowRef, watch, watchEffect } from 'vue'
@@ -99,23 +103,29 @@ import Subtitle from './components/Subtitle/index.vue'
 import { usePlayerProvide } from './hooks/usePlayerProvide'
 import { usePortalProvider } from './hooks/usePortal'
 
-/** 属性 */
+/**
+ * 组件属性
+ */
 const props = withDefaults(defineProps<XPlayerProps>(), {
-  onThumbnailRequest: undefined,
-  onSubtitleChange: undefined,
-  hlsConfig: () => ({}),
-  avPlayerConfig: () => ({}),
-  quality: 0,
-  longPressPlaybackRate: 15,
-  seekSeconds: FAST_JUMP_OFFSET,
-  highSpeedSeekSeconds: HIGH_FAST_JUMP_OFFSET,
-  percentageSeek: 10,
+  onThumbnailRequest: undefined,  // 缩略图请求回调
+  onSubtitleChange: undefined,    // 字幕变化回调
+  hlsConfig: () => ({}),          // HLS配置
+  avPlayerConfig: () => ({}),      // AV播放器配置
+  quality: 0,                      // 视频质量
+  longPressPlaybackRate: 15,       // 长按播放速率
+  seekSeconds: FAST_JUMP_OFFSET,   // 普通快进/快退秒数
+  highSpeedSeekSeconds: HIGH_FAST_JUMP_OFFSET,  // 高速快进/快退秒数
+  percentageSeek: 10,              // 百分比快进/快退
 })
 
-/** 事件 */
+/**
+ * 组件事件
+ */
 const emit = defineEmits<XPlayerEmit>()
 
-/** 插槽 */
+/**
+ * 组件插槽
+ */
 defineSlots<{
   /** 头部左侧插槽 */
   headerLeft: (props: { ctx: PlayerContext }) => void
@@ -125,21 +135,24 @@ defineSlots<{
   aboutContent: () => void
 }>()
 
+/**
+ * 组件样式
+ */
 const styles = clsx({
   root: 'relative bg-black',
   fullscreen: 'w-100vw h-100vh',
   container: 'relative h-full w-full overflow-hidden',
   videoPlayer: 'flex h-full w-full items-center justify-center',
-  error:
+  error: 
     'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform',
-  resumeContainer:
+  resumeContainer: 
     'absolute inset-0 z-2 flex items-center justify-center bg-black/90',
   resumeButton: 'btn',
 })
 
-/** 根元素 */
+/** 根元素引用 */
 const rootRef = shallowRef<HTMLElement | null>(null)
-/** 原生视频元素 */
+/** 视频播放器容器引用 */
 const playerElementRef = shallowRef<HTMLDivElement | null>(null)
 /** 弹出层上下文 */
 const portalContext = usePortalProvider()
@@ -159,13 +172,14 @@ const ctx = usePlayerProvide(
   emit,
 )
 
+// 解构播放器上下文
 const {
-  fullscreen,
-  source,
-  transform,
-  videoEnhance,
-  playerCore,
-  controls,
+  fullscreen,    // 全屏控制
+  source,        // 视频源控制
+  transform,     // 视频变换控制
+  videoEnhance,  // 视频增强控制
+  playerCore,    // 播放器核心
+  controls,      // 控制栏控制
 } = ctx
 
 // 监听控制栏可见性，直接设置光标样式
@@ -179,10 +193,10 @@ watch(
   { immediate: true },
 )
 
-// 暴露方法
+// 暴露方法给父组件
 defineExpose({
-  togglePlay: playerCore.value?.togglePlay,
-  interruptSource: source.interruptSource,
-  seekTo: playerCore.value?.seek,
+  togglePlay: playerCore.value?.togglePlay,  // 切换播放/暂停
+  interruptSource: source.interruptSource,   // 中断视频源
+  seekTo: playerCore.value?.seek,            // 跳转到指定时间
 })
 </script>
