@@ -43,6 +43,7 @@ export class TopHeaderMod extends BaseMod {
     this.deleteOfficialDownloadButton()
     this.addMasterOfflineTaskButton()
     this.addPreviewSwitchButton()
+    this.addTimeSortButton()
     this.fixContextMenuPosition('upload_btn_add_dir')
     this.fixContextMenuPosition('create_new_add_dir')
   }
@@ -106,6 +107,98 @@ export class TopHeaderMod extends BaseMod {
       button.classList.toggle('active')
     }
     return button
+  }
+
+  /** 添加时间排序按钮 */
+  private addTimeSortButton() {
+    const button = this.createTimeSortButton()
+    this.topHeaderNode?.append(button)
+  }
+
+  /** 创建时间排序按钮 */
+  private createTimeSortButton() {
+    const button = document.createElement('a')
+    button.classList.add('button', 'btn-line', 'master-time-sort-btn')
+    button.setAttribute('title', '按视频时长排序')
+    button.href = 'javascript:void(0)'
+    // 只保留图标，确保没有文字
+    button.innerHTML = '<i class="icon-operate ifo-sort"></i>'
+    button.onclick = () => {
+      this.toggleTimeSort()
+      button.classList.toggle('active')
+    }
+    return button
+  }
+
+  /** 切换时间排序 */
+  private toggleTimeSort() {
+    const listCellNode = document.querySelector('.list-contents') || document.querySelector('.list-thumb')
+    if (!listCellNode) return
+
+    const itemNodes = Array.from(listCellNode.querySelectorAll('li'))
+    const videoItems = itemNodes.filter(item => {
+      const iv = item.getAttribute('iv')
+      return iv === '1' // 只处理视频文件
+    })
+
+    if (videoItems.length === 0) return
+
+    // 找到排序按钮
+    const sortButton = document.querySelector('.master-time-sort-btn')
+    if (!sortButton) return
+
+    const isSorted = sortButton.classList.contains('active')
+
+    if (isSorted) {
+      // 已经排序，取消排序（恢复原始顺序）
+      // 重新加载文件列表
+      location.reload()
+    } else {
+      // 未排序，按时长从小到大排序
+      const sortedItems = [...videoItems].sort((a, b) => {
+        // 获取时长元素
+        const durationANode = a.querySelector('.duration')
+        const durationBNode = b.querySelector('.duration')
+        
+        // 获取时长文本
+        const durationAText = durationANode?.textContent?.trim() || '0:00'
+        const durationBText = durationBNode?.textContent?.trim() || '0:00'
+        
+        // 解析时长为秒数
+        const parseDuration = (timeStr: string): number => {
+          const parts = timeStr.split(':').map(Number).reverse()
+          let seconds = 0
+          if (parts.length >= 1) seconds += parts[0] // 秒
+          if (parts.length >= 2) seconds += parts[1] * 60 // 分
+          if (parts.length >= 3) seconds += parts[2] * 3600 // 时
+          return seconds
+        }
+        
+        const secondsA = parseDuration(durationAText)
+        const secondsB = parseDuration(durationBText)
+        
+        return secondsA - secondsB
+      })
+
+      // 保存非视频文件的原始顺序
+      const nonVideoItems = itemNodes.filter(item => {
+        const iv = item.getAttribute('iv')
+        return iv !== '1'
+      })
+
+      // 先清空容器
+      while (listCellNode.firstChild) {
+        listCellNode.removeChild(listCellNode.firstChild)
+      }
+
+      // 先添加非视频文件，再添加排序后的视频文件
+      nonVideoItems.forEach(item => {
+        listCellNode.appendChild(item)
+      })
+      sortedItems.forEach(item => {
+        listCellNode.appendChild(item)
+      })
+    }
   }
 
   /** 修正右键菜单位置 */
