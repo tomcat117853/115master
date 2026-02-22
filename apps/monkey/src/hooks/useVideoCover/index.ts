@@ -155,10 +155,26 @@ function toDisplayableData(rawData: VideoCoverRaw): VideoCover {
  * @returns 原始视频封面数据
  */
 async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Promise<VideoCoverRaw> {
-  /** 获取截图：在指定时间点截取视频帧 */
-  const result = await clipper.seek(time, true)
-  if (!result) {
-    throw new Error('no clipper result')
+  let seekTime = time
+  let result
+
+  try {
+    /** 获取截图：在指定时间点截取视频帧 */
+    result = await clipper.seek(seekTime, true)
+    if (!result) {
+      throw new Error('no clipper result')
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message === '时间超出范围') {
+      /** 使用安全的时间点：视频时长的一半 */
+      seekTime = clipper.hlsIo.duration / 2
+      result = await clipper.seek(seekTime, true)
+      if (!result) {
+        throw new Error('no clipper result')
+      }
+    } else {
+      throw error
+    }
   }
 
   /** 计算图片缩放尺寸：确保图片不超过最大宽度和高度 */
@@ -204,7 +220,7 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
     width: resize.width,
     height: resize.height,
     frameTime: result.frameTime,
-    seekTime: time,
+    seekTime,  // 使用实际的 seekTime
   }
   return raw
 }

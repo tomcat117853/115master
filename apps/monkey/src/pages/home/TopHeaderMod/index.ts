@@ -124,9 +124,9 @@ export class TopHeaderMod extends BaseMod {
     // 只保留图标，确保没有文字
     button.innerHTML = '<i class="icon-operate ifo-sort"></i>'
     button.onclick = () => {
-      // 先切换 active 类，再执行排序逻辑
-      button.classList.toggle('active')
+      // 先执行排序逻辑，再切换 active 类
       this.toggleTimeSort()
+      button.classList.toggle('active')
     }
     return button
   }
