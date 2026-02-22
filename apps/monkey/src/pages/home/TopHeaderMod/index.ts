@@ -124,31 +124,35 @@ export class TopHeaderMod extends BaseMod {
     // 只保留图标，确保没有文字
     button.innerHTML = '<i class="icon-operate ifo-sort"></i>'
     button.onclick = () => {
-      this.toggleTimeSort()
+      // 先切换 active 类，再执行排序逻辑
       button.classList.toggle('active')
+      this.toggleTimeSort()
     }
     return button
   }
 
   /** 切换时间排序 */
   private toggleTimeSort() {
-    // 直接获取正确的列表容器
+    /** 直接获取正确的列表容器 */
     const listContainer = document.querySelector('.list-contents') || document.querySelector('.list-thumb')
-    if (!listContainer) return
+    if (!listContainer)
+      return
 
-    // 获取所有文件项
+    /** 获取所有文件项 */
     const allItems = Array.from(listContainer.querySelectorAll('li'))
-    
-    // 过滤出视频文件
-    const videoItems = allItems.filter(item => {
+
+    /** 过滤出视频文件 */
+    const videoItems = allItems.filter((item) => {
       return item.getAttribute('iv') === '1'
     })
 
-    if (videoItems.length === 0) return
+    if (videoItems.length === 0)
+      return
 
-    // 找到排序按钮
+    /** 找到排序按钮 */
     const sortButton = document.querySelector('.master-time-sort-btn')
-    if (!sortButton) return
+    if (!sortButton)
+      return
 
     const isSorted = sortButton.classList.contains('active')
 
@@ -156,90 +160,97 @@ export class TopHeaderMod extends BaseMod {
       // 已经排序，取消排序（恢复原始顺序）
       // 不使用 location.reload()，而是重新获取并恢复原始顺序
       this.restoreOriginalOrder(listContainer, allItems)
-    } else {
+    }
+    else {
       // 未排序，按时长从小到大排序
-      // 先解析所有视频的时长
-      const videosWithDuration = videoItems.map(item => {
+      /** 先解析所有视频的时长 */
+      const videosWithDuration = videoItems.map((item) => {
         const fileName = item.querySelector('.name')?.textContent?.trim() || 'unknown'
-        
-        // 尝试多种方式获取时长信息
+
+        /** 尝试多种方式获取时长信息 */
         let durationText = '0:00'
         let duration = 0
-        
-        // 方式1：查找 .duration 元素（用户提供的位置）
+
+        /** 方式1：查找 .duration 元素（用户提供的位置） */
         const durationNode = item.querySelector('.duration')
         if (durationNode) {
-          // 优先从 duration 属性获取
+          /** 优先从 duration 属性获取 */
           const durationAttr = durationNode.getAttribute('duration')
           if (durationAttr) {
             durationText = durationAttr
             console.log(`找到 duration 属性: ${durationAttr}`)
-          } else {
+          }
+          else {
             // 其次从文本内容获取
             durationText = durationNode.textContent?.trim() || '0:00'
             console.log(`找到 .duration 元素文本: ${durationText}`)
           }
         }
-        
+
         // 解析时长为秒数
         if (durationText !== '0:00') {
           const parseDuration = (timeStr: string): number => {
             const parts = timeStr.split(':').map(Number)
             let seconds = 0
-            
+
             if (parts.length === 3) {
               // HH:MM:SS
               seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
-            } else if (parts.length === 2) {
+            }
+            else if (parts.length === 2) {
               // MM:SS
               seconds = parts[0] * 60 + parts[1]
             }
-            
+
             return seconds
           }
-          
+
           duration = parseDuration(durationText)
         }
-        
+
         console.log(`文件 ${fileName} 时长: ${durationText} (${duration} 秒)`)
-        
+
         return {
           item,
           fileName,
           duration,
-          originalText: durationText // 保存原始文本用于调试
+          originalText: durationText, // 保存原始文本用于调试
         }
       })
-      
-      // 生成日志
+
+      /** 生成日志 */
       const logData = {
         timestamp: new Date().toISOString(),
         beforeSort: videosWithDuration.map(v => ({
           fileName: v.fileName,
           originalText: v.originalText,
-          duration: v.duration
+          duration: v.duration,
         })),
-        afterSort: []
+        afterSort: videosWithDuration.map(v => ({
+          fileName: v.fileName,
+          originalText: v.originalText,
+          duration: v.duration,
+        })),
       }
-      
+
       // 按时长排序
       videosWithDuration.sort((a, b) => a.duration - b.duration)
-      
-      // 记录排序后的结果
+
+      // 更新排序后的结果
       logData.afterSort = videosWithDuration.map(v => ({
         fileName: v.fileName,
         originalText: v.originalText,
-        duration: v.duration
+        duration: v.duration,
       }))
-      
+
       // 输出日志到控制台
       console.log('=== 视频排序日志 ===', logData)
-      
-      // 提取排序后的视频项
+
+      /** 提取排序后的视频项 */
       const sortedVideos = videosWithDuration.map(v => v.item)
-      
-      // 过滤出非视频文件
-      const nonVideoItems = allItems.filter(item => {
+
+      /** 过滤出非视频文件 */
+      const nonVideoItems = allItems.filter((item) => {
         return item.getAttribute('iv') !== '1'
       })
 
@@ -260,7 +271,7 @@ export class TopHeaderMod extends BaseMod {
     while (listContainer.firstChild) {
       listContainer.removeChild(listContainer.firstChild)
     }
-    
+
     // 按照原始顺序添加回去
     originalItems.forEach(item => listContainer.appendChild(item))
   }
