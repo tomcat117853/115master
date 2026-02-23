@@ -260,9 +260,9 @@ export class TopHeaderMod extends BaseMod {
       // 3. 这导致点击事件绑定到了错误的视频元素上
 
       // 解决方案：
-      // 1. 保存每个元素的唯一标识符（如 data-pick-code 属性）
-      // 2. 直接修改 DOM 元素的顺序
-      // 3. 确保每个元素的事件监听器正确绑定
+      // 1. 直接修改 DOM 元素的顺序，不使用移除并重新添加的方式
+      // 2. 这样可以避免 FileItemModLoader 被销毁并重新创建
+      // 3. 保持元素的事件监听器不变，确保 pick_code 与视频元素的正确关联
 
       // 为每个元素添加唯一标识符（如果没有）
       allItems.forEach((item) => {
@@ -272,27 +272,22 @@ export class TopHeaderMod extends BaseMod {
         }
       })
 
-      // 先清空容器
-      while (listContainer.firstChild) {
-        listContainer.removeChild(listContainer.firstChild)
-      }
-
-      /** 按照新顺序添加元素 */
-      const newOrder = [...nonVideoItems, ...sortedVideos]
-      newOrder.forEach((item) => {
-        listContainer.appendChild(item)
+      // 直接修改 DOM 元素的顺序
+      // 先将所有非视频文件移动到容器开头
+      nonVideoItems.forEach((item) => {
+        // 只有当元素不是容器的第一个子元素时才移动
+        if (item !== listContainer.firstChild) {
+          listContainer.insertBefore(item, listContainer.firstChild)
+        }
       })
 
-      // 手动触发 FileListMod 的更新
-      // 这样可以让 FileListMod 重新初始化所有 FileItemModLoader
-      setTimeout(() => {
-        /** 触发一次 DOM 变化事件，让 FileListMod 检测到变化 */
-        const event = new Event('DOMSubtreeModified', {
-          bubbles: true,
-          cancelable: true,
-        })
-        document.querySelector('.list-cell')?.dispatchEvent(event)
-      }, 100)
+      // 再将所有排序后的视频文件移动到非视频文件后面
+      sortedVideos.forEach((item) => {
+        // 只有当元素不是容器的最后一个子元素时才移动
+        if (item !== listContainer.lastChild) {
+          listContainer.appendChild(item)
+        }
+      })
     }
   }
 
@@ -306,24 +301,16 @@ export class TopHeaderMod extends BaseMod {
       }
     })
 
-    // 先清空容器
-    while (listContainer.firstChild) {
-      listContainer.removeChild(listContainer.firstChild)
-    }
-
-    // 按照原始顺序添加元素
-    originalItems.forEach((item) => {
-      listContainer.appendChild(item)
+    // 直接修改 DOM 元素的顺序
+    // 按照原始顺序重新排列元素
+    originalItems.forEach((item, index) => {
+      /** 获取当前位置的元素 */
+      const currentItem = listContainer.children[index]
+      // 如果当前位置的元素不是目标元素，则移动目标元素到当前位置
+      if (currentItem !== item) {
+        listContainer.insertBefore(item, currentItem)
+      }
     })
-
-    // 手动触发 FileListMod 的更新
-    setTimeout(() => {
-      const event = new Event('DOMSubtreeModified', {
-        bubbles: true,
-        cancelable: true,
-      })
-      document.querySelector('.list-cell')?.dispatchEvent(event)
-    }, 100)
   }
 
   /** 修正右键菜单位置 */
