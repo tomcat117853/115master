@@ -254,26 +254,76 @@ export class TopHeaderMod extends BaseMod {
         return item.getAttribute('iv') !== '1'
       })
 
+      // 问题分析：
+      // 1. 当我们重新排序视频元素时，FileItemModLoader 会被销毁并重新创建
+      // 2. 但是，重新创建的 FileItemModLoader 可能没有正确地与新的 DOM 元素关联
+      // 3. 这导致点击事件绑定到了错误的视频元素上
+
+      // 解决方案：
+      // 1. 保存每个元素的唯一标识符（如 data-pick-code 属性）
+      // 2. 直接修改 DOM 元素的顺序
+      // 3. 确保每个元素的事件监听器正确绑定
+
+      // 为每个元素添加唯一标识符（如果没有）
+      allItems.forEach((item) => {
+        const pickCode = item.getAttribute('pick_code') || item.querySelector('[pick_code]')?.getAttribute('pick_code')
+        if (pickCode) {
+          item.setAttribute('data-pick-code', pickCode)
+        }
+      })
+
       // 先清空容器
       while (listContainer.firstChild) {
         listContainer.removeChild(listContainer.firstChild)
       }
 
-      // 先添加非视频文件，再添加排序后的视频文件
-      nonVideoItems.forEach(item => listContainer.appendChild(item))
-      sortedVideos.forEach(item => listContainer.appendChild(item))
+      /** 按照新顺序添加元素 */
+      const newOrder = [...nonVideoItems, ...sortedVideos]
+      newOrder.forEach((item) => {
+        listContainer.appendChild(item)
+      })
+
+      // 手动触发 FileListMod 的更新
+      // 这样可以让 FileListMod 重新初始化所有 FileItemModLoader
+      setTimeout(() => {
+        /** 触发一次 DOM 变化事件，让 FileListMod 检测到变化 */
+        const event = new Event('DOMSubtreeModified', {
+          bubbles: true,
+          cancelable: true,
+        })
+        document.querySelector('.list-cell')?.dispatchEvent(event)
+      }, 100)
     }
   }
 
   /** 恢复原始顺序 */
   private restoreOriginalOrder(listContainer: Element, originalItems: Element[]) {
+    // 为每个元素添加唯一标识符（如果没有）
+    originalItems.forEach((item) => {
+      const pickCode = item.getAttribute('pick_code') || item.querySelector('[pick_code]')?.getAttribute('pick_code')
+      if (pickCode) {
+        item.setAttribute('data-pick-code', pickCode)
+      }
+    })
+
     // 先清空容器
     while (listContainer.firstChild) {
       listContainer.removeChild(listContainer.firstChild)
     }
 
-    // 按照原始顺序添加回去
-    originalItems.forEach(item => listContainer.appendChild(item))
+    // 按照原始顺序添加元素
+    originalItems.forEach((item) => {
+      listContainer.appendChild(item)
+    })
+
+    // 手动触发 FileListMod 的更新
+    setTimeout(() => {
+      const event = new Event('DOMSubtreeModified', {
+        bubbles: true,
+        cancelable: true,
+      })
+      document.querySelector('.list-cell')?.dispatchEvent(event)
+    }, 100)
   }
 
   /** 修正右键菜单位置 */
