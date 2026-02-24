@@ -44,6 +44,7 @@ export class TopHeaderMod extends BaseMod {
     this.addMasterOfflineTaskButton()
     this.addPreviewSwitchButton()
     this.addTimeSortButton()
+    this.addFolderTimeSortButton()
     this.fixContextMenuPosition('upload_btn_add_dir')
     this.fixContextMenuPosition('create_new_add_dir')
   }
@@ -126,6 +127,28 @@ export class TopHeaderMod extends BaseMod {
     button.onclick = () => {
       // 先执行排序逻辑，再切换 active 类
       this.toggleTimeSort()
+      button.classList.toggle('active')
+    }
+    return button
+  }
+
+  /** 添加文件夹视频时长排序按钮 */
+  private addFolderTimeSortButton() {
+    const button = this.createFolderTimeSortButton()
+    this.topHeaderNode?.append(button)
+  }
+
+  /** 创建文件夹视频时长排序按钮 */
+  private createFolderTimeSortButton() {
+    const button = document.createElement('a')
+    button.classList.add('button', 'btn-line', 'master-folder-time-sort-btn')
+    button.setAttribute('title', '按文件夹视频时长排序')
+    button.href = 'javascript:void(0)'
+    // 只保留图标，确保没有文字
+    button.innerHTML = '<i class="icon-operate ifo-sort"></i>'
+    button.onclick = () => {
+      // 先执行排序逻辑，再切换 active 类
+      this.toggleFolderTimeSort()
       button.classList.toggle('active')
     }
     return button
@@ -283,6 +306,176 @@ export class TopHeaderMod extends BaseMod {
 
       // 再将所有排序后的视频文件移动到非视频文件后面
       sortedVideos.forEach((item) => {
+        // 只有当元素不是容器的最后一个子元素时才移动
+        if (item !== listContainer.lastChild) {
+          listContainer.appendChild(item)
+        }
+      })
+    }
+  }
+
+  /** 切换文件夹视频时长排序 */
+  private toggleFolderTimeSort() {
+    /** 直接获取正确的列表容器 */
+    const listContainer = document.querySelector('.list-contents') || document.querySelector('.list-thumb')
+    if (!listContainer)
+      return
+
+    /** 获取所有文件项 */
+    const allItems = Array.from(listContainer.querySelectorAll('li'))
+
+    /** 过滤出文件夹项 */
+    const folderItems = allItems.filter((item) => {
+      return item.querySelector('.file-type.tp-folder') !== null
+    })
+
+    if (folderItems.length === 0)
+      return
+
+    /** 找到排序按钮 */
+    const sortButton = document.querySelector('.master-folder-time-sort-btn')
+    if (!sortButton)
+      return
+
+    const isSorted = sortButton.classList.contains('active')
+
+    if (isSorted) {
+      // 已经排序，取消排序（恢复原始顺序）
+      // 不使用 location.reload()，而是重新获取并恢复原始顺序
+      this.restoreOriginalOrder(listContainer, allItems)
+    }
+    else {
+      // 未排序，按文件夹视频时长从大到小排序
+      /** 先解析所有文件夹的视频时长 */
+      const foldersWithDuration = folderItems.map((item) => {
+        const fileName = item.querySelector('.name')?.textContent?.trim() || 'unknown'
+
+        /** 尝试从文本中提取时长信息 */
+        let durationText = '0:00'
+        let duration = 0
+
+        /** 查找视频时长文本 */
+        const durationNode = item.querySelector('.txt-duration')
+        if (durationNode) {
+          durationText = durationNode.textContent?.trim() || '0:00'
+          console.log(`找到文件夹时长文本: ${durationText}`)
+        }
+
+        // 解析时长为秒数
+        if (durationText !== '0:00') {
+          const parseDuration = (timeStr: string): number => {
+            /** 提取数字部分，忽略其他字符 */
+            const timeParts = timeStr.match(/(\d+)小时(\d+)分钟(\d+)秒/)
+              || timeStr.match(/(\d+)分钟(\d+)秒/)
+              || timeStr.match(/(\d+)小时(\d+)分钟/)
+              || timeStr.match(/(\d+)秒/)
+              || timeStr.match(/(\d+)分钟/)
+              || timeStr.match(/(\d+)小时/)
+
+            if (!timeParts)
+              return 0
+
+            let seconds = 0
+
+            if (timeParts.length === 4) {
+              // 小时:分钟:秒
+              seconds = parseInt(timeParts[1]) * 3600 + parseInt(timeParts[2]) * 60 + parseInt(timeParts[3])
+            }
+            else if (timeParts.length === 3) {
+              // 分钟:秒 或 小时:分钟
+              if (timeStr.includes('小时') && timeStr.includes('分钟')) {
+                // 小时:分钟
+                seconds = parseInt(timeParts[1]) * 3600 + parseInt(timeParts[2]) * 60
+              }
+              else {
+                // 分钟:秒
+                seconds = parseInt(timeParts[1]) * 60 + parseInt(timeParts[2])
+              }
+            }
+            else if (timeParts.length === 2) {
+              // 只有秒 或 只有分钟 或 只有小时
+              if (timeStr.includes('小时')) {
+                seconds = parseInt(timeParts[1]) * 3600
+              }
+              else if (timeStr.includes('分钟')) {
+                seconds = parseInt(timeParts[1]) * 60
+              }
+              else {
+                seconds = parseInt(timeParts[1])
+              }
+            }
+
+            return seconds
+          }
+
+          duration = parseDuration(durationText)
+        }
+
+        console.log(`文件夹 ${fileName} 时长: ${durationText} (${duration} 秒)`)
+
+        return {
+          item,
+          fileName,
+          duration,
+          originalText: durationText, // 保存原始文本用于调试
+        }
+      })
+
+      /** 生成日志 */
+      const logData = {
+        timestamp: new Date().toISOString(),
+        beforeSort: foldersWithDuration.map(v => ({
+          fileName: v.fileName,
+          originalText: v.originalText,
+          duration: v.duration,
+        })),
+        afterSort: foldersWithDuration.map(v => ({
+          fileName: v.fileName,
+          originalText: v.originalText,
+          duration: v.duration,
+        })),
+      }
+
+      // 按文件夹视频时长从大到小排序
+      foldersWithDuration.sort((a, b) => b.duration - a.duration)
+
+      // 更新排序后的结果
+      logData.afterSort = foldersWithDuration.map(v => ({
+        fileName: v.fileName,
+        originalText: v.originalText,
+        duration: v.duration,
+      }))
+
+      // 输出日志到控制台
+      console.log('=== 文件夹视频时长排序日志 ===', logData)
+
+      /** 提取排序后的文件夹项 */
+      const sortedFolders = foldersWithDuration.map(v => v.item)
+
+      /** 过滤出非文件夹项 */
+      const nonFolderItems = allItems.filter((item) => {
+        return item.querySelector('.file-type.tp-folder') === null
+      })
+
+      // 为每个元素添加唯一标识符（如果没有）
+      allItems.forEach((item) => {
+        const pickCode = item.getAttribute('pick_code') || item.querySelector('[pick_code]')?.getAttribute('pick_code')
+        if (pickCode) {
+          item.setAttribute('data-pick-code', pickCode)
+        }
+      })
+
+      // 直接修改 DOM 元素的顺序
+      // 先将所有非文件夹项移动到容器开头
+      nonFolderItems.forEach((item) => {
+        // 只有当元素不是容器的第一个子元素时才移动
+        if (item !== listContainer.firstChild) {
+          listContainer.insertBefore(item, listContainer.firstChild)
+        }
+      })
+
+      // 再将所有排序后的文件夹项移动到非文件夹项后面
+      sortedFolders.forEach((item) => {
         // 只有当元素不是容器的最后一个子元素时才移动
         if (item !== listContainer.lastChild) {
           listContainer.appendChild(item)
