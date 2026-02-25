@@ -23,8 +23,19 @@ export class TopHeaderMod extends BaseMod {
 
   /** 顶部导航栏节点 */
   get topHeaderNode() {
-    return document.querySelector(unsafeWindow.Main.CONFIG.TopPanelBox)
-      ?.firstElementChild as HTMLElement
+    try {
+      // 尝试使用原始方法
+      if (unsafeWindow.Main?.CONFIG?.TopPanelBox) {
+        return document.querySelector(unsafeWindow.Main.CONFIG.TopPanelBox)
+          ?.firstElementChild as HTMLElement
+      }
+    }
+    catch (error) {
+      console.error('获取顶部导航栏节点失败:', error)
+    }
+    // 使用备用选择器
+    return document.querySelector('.top-panel-box')?.firstElementChild as HTMLElement
+      || document.querySelector('.top-panel') as HTMLElement
   }
 
   /** 销毁 */
