@@ -56,13 +56,13 @@ export abstract class FileItemModBase {
   destroy() {
     this.onDestroy()
   }
-  
+
   /**
    * 加载时执行的抽象方法
    * 子类必须实现
    */
   abstract onLoad(): void
-  
+
   /**
    * 销毁时执行的抽象方法
    * 子类必须实现

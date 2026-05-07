@@ -27,7 +27,7 @@ export function useDataVideoSources() {
    * @param pickCode - 文件选择码
    */
   const fetch = async (pickCode: string) => {
-    // 并行获取下载链接和 m3u8 列表
+    /** 并行获取下载链接和 m3u8 列表 */
     const [download, m3u8List] = await Promise.allSettled([
       drive115.getFileDownloadUrl(pickCode),
       drive115.getM3u8(pickCode),
@@ -55,7 +55,7 @@ export function useDataVideoSources() {
         }
       }
 
-      // 获取文件扩展名
+      /** 获取文件扩展名 */
       const extension
         = getFileExtensionByUrl(download.value.url.url)
           ?? VIDEO_SOURCE_EXTENSION.unknown
@@ -98,8 +98,8 @@ export function useDataVideoSources() {
   }
 
   return {
-    list,      // 视频源列表
-    fetch,     // 获取视频源的方法
-    clear,     // 清空视频源的方法
+    list, // 视频源列表
+    fetch, // 获取视频源的方法
+    clear, // 清空视频源的方法
   }
 }

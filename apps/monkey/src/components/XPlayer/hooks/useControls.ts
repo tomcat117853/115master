@@ -140,12 +140,9 @@ export function useControls(ctx: PlayerContext) {
       return
     }
 
-    if (visible.value) {
-      ctx.cssVar.safeAreaBottom.value = `${controlsMainHeight.value}px`
-    }
-    else {
-      ctx.cssVar.safeAreaBottom.value = '0px'
-    }
+    ctx.cssVar.safeAreaBottom.value = visible.value
+      ? `${controlsMainHeight.value}px`
+      : '0px'
   })
 
   // 监听

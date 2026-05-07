@@ -159,8 +159,8 @@ export class GMRequest extends IRequest {
       return headers
 
     const headerPairs = headerStr.split('\n')
-    for (let i = 0; i < headerPairs.length; i++) {
-      const headerPair = headerPairs[i].trim()
+    for (const headerPairRaw of headerPairs) {
+      const headerPair = headerPairRaw.trim()
       if (headerPair) {
         const index = headerPair.indexOf(':')
         if (index > 0) {

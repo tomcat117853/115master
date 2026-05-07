@@ -124,7 +124,7 @@ export function usePlayerProvide(
   // 根事件
   rootEmit: EmitFn<XPlayerEmit>,
 ) {
-  // 初始化播放器上下文
+  /** 初始化播放器上下文 */
   const context: PlayerContext = {
     refs: {
       rootRef: refs.rootRef,

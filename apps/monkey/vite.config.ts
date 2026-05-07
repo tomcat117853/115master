@@ -1,8 +1,9 @@
+import { resolve } from 'node:path'
 /**
  * Vite 构建配置文件
  * @description 负责配置项目的构建过程、插件和输出选项
  */
-import { resolve } from 'node:path'
+import process from 'node:process'
 import * as transformer from '@libmedia/cheap/build/transformer'
 import typescript from '@rollup/plugin-typescript'
 import tailwindcss from '@tailwindcss/vite'
@@ -13,15 +14,15 @@ import monkey, { cdn, util } from 'vite-plugin-monkey'
 import svgLoader from 'vite-svg-loader'
 import PKG from './package.json'
 
-// 环境变量
+/** 环境变量 */
 const env = process.env
 
 /**
  * 图标配置
  */
 const icons = {
-  prod: 'https://115.com/favicon.ico',  // 生产环境图标
-  dev: 'https://vitejs.dev/logo.svg',    // 开发环境图标
+  prod: 'https://115.com/favicon.ico', // 生产环境图标
+  dev: 'https://vitejs.dev/logo.svg', // 开发环境图标
 }
 
 /**
@@ -42,24 +43,24 @@ export default defineConfig({
    */
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),  // 别名配置，@ 指向 src 目录
+      '@': resolve(__dirname, 'src'), // 别名配置，@ 指向 src 目录
     },
   },
-  
+
   /**
    * 构建配置
    */
   build: {
-    minify: true,  // 开启代码压缩
+    minify: true, // 开启代码压缩
   },
-  
+
   /**
    * 依赖优化配置
    */
   optimizeDeps: {
-    exclude: ['@libmedia/avplayer'],  // 排除不需要优化的依赖
+    exclude: ['@libmedia/avplayer'], // 排除不需要优化的依赖
   },
-  
+
   /**
    * 插件配置
    */
@@ -81,65 +82,65 @@ export default defineConfig({
         ],
       },
     }),
-    
+
     /**
      * Vue 插件
      */
     vue(),
-    
+
     /**
      * Tailwind CSS 插件
      */
     tailwindcss(),
-    
+
     /**
      * SVG 加载器插件
      */
     svgLoader(),
-    
+
     /**
      * 构建分析插件
      */
     visualizer({
-      filename: 'dist/stats.html',  // 分析报告文件路径
-      open: isAnalyze,              // 是否自动打开分析报告
-      gzipSize: true,               // 显示 gzip 压缩大小
-      brotliSize: true,             // 显示 brotli 压缩大小
+      filename: 'dist/stats.html', // 分析报告文件路径
+      open: isAnalyze, // 是否自动打开分析报告
+      gzipSize: true, // 显示 gzip 压缩大小
+      brotliSize: true, // 显示 brotli 压缩大小
     }),
-    
+
     /**
      * Monkey 插件配置
      * 用于构建 Tampermonkey 脚本
      */
     monkey({
-      entry: 'src/main.ts',  // 脚本入口文件
-      
+      entry: 'src/main.ts', // 脚本入口文件
+
       /**
        * 用户脚本配置
        * 对应 Tampermonkey 脚本的元数据
        */
       userscript: {
-        'name': '115Master',                     // 脚本名称
-        'icon': isProd ? icons.prod : icons.dev,  // 脚本图标
-        'namespace': '115Master',                // 脚本命名空间
-        'homepage': PKG.homepage,                // 脚本主页
-        'author': PKG.author,                    // 脚本作者
-        'description': PKG.description,          // 脚本描述
-        'supportURL': PKG.bugs?.url,             // 支持链接
-        'run-at': 'document-start',              // 脚本运行时机
-        'include': [                             // 脚本适用的 URL
+        'name': '115Master', // 脚本名称
+        'icon': isProd ? icons.prod : icons.dev, // 脚本图标
+        'namespace': '115Master', // 脚本命名空间
+        'homepage': PKG.homepage, // 脚本主页
+        'author': PKG.author, // 脚本作者
+        'description': PKG.description, // 脚本描述
+        'supportURL': PKG.bugs?.url, // 支持链接
+        'run-at': 'document-start', // 脚本运行时机
+        'include': [ // 脚本适用的 URL
           'https://115.com/?ct*',
           'https://115.com/web/lixian/master/video/*',
           'https://115.com/web/lixian/master/magnet/*',
           'https://115.com/?aid*',
           'https://dl.115cdn.net/video/token',
         ],
-        'exclude': [                             // 脚本排除的 URL
+        'exclude': [ // 脚本排除的 URL
           'https://*.115.com/bridge*',
           'https://*.115.com/static*',
           'https://q.115.com/*',
         ],
-        'connect': [                             // 允许跨域访问的域名
+        'connect': [ // 允许跨域访问的域名
           '115.com',
           '115vod.com',
           'aps.115.com',
@@ -157,22 +158,22 @@ export default defineConfig({
           'api-shoulei-ssl.xunlei.com',
           'subtitle.v.geilijiasu.com',
         ],
-        'resource': {                            // 脚本资源
+        'resource': { // 脚本资源
           icon: 'https://115.com/favicon.ico',
         },
-        'downloadURL':                           // 脚本下载链接
+        'downloadURL': // 脚本下载链接
           'https://github.com/cbingb666/115master/releases/latest/download/115master.user.js',
-        'updateURL':                             // 脚本更新链接
+        'updateURL': // 脚本更新链接
           'https://github.com/cbingb666/115master/releases/latest/download/115master.meta.js',
       },
-      
+
       /**
        * 构建配置
        */
       build: {
-        fileName: '115master.user.js',           // 输出文件名
-        metaFileName: '115master.meta.js',       // 元数据文件名
-        externalGlobals: {                       // 外部全局变量配置
+        fileName: '115master.user.js', // 输出文件名
+        metaFileName: '115master.meta.js', // 元数据文件名
+        externalGlobals: { // 外部全局变量配置
           'vue': _cdn('Vue', 'dist/vue.global.prod.js'),
           'localforage': _cdn('localforage', 'dist/localforage.min.js'),
           'lodash': _cdn('_', 'lodash.min.js'),

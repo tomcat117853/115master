@@ -44,7 +44,7 @@ export class UserSettings {
   value: Settings
   /** 监听任务列表 */
   private watchTasks: AnyWatchTask[] = []
-  
+
   /**
    * 构造函数
    */
@@ -86,12 +86,12 @@ export class UserSettings {
    */
   private create() {
     const namespace = 'USER_SETTINGS'
-    // 从 GM 存储获取设置，默认为空对象
+    /** 从 GM 存储获取设置，默认为空对象 */
     const value = GM_getValue(namespace) ?? {}
-    // 合并默认设置和用户设置
+    /** 合并默认设置和用户设置 */
     const userSettings = { ...DEFAULT_SETTINGS, ...value }
-    
-    // 创建代理对象，用于监听设置变化
+
+    /** 创建代理对象，用于监听设置变化 */
     const proxy = new Proxy(userSettings, {
       /**
        * 获取设置值
@@ -102,7 +102,7 @@ export class UserSettings {
       get: (target, key) => {
         return target[key]
       },
-      
+
       /**
        * 设置设置值
        * @param target - 目标对象
@@ -125,7 +125,7 @@ export class UserSettings {
         return true
       },
     })
-    
+
     return proxy
   }
 }

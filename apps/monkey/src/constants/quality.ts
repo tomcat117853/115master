@@ -23,9 +23,9 @@ export const qualityNumMap = {
  * 值: 对应的数值
  */
 export const qualityCodeMap = {
-  '3G': 360,  // 3G网络质量
-  'SD': 480,  // 标清
-  'HD': 720,  // 高清
+  '3G': 360, // 3G网络质量
+  'SD': 480, // 标清
+  'HD': 720, // 高清
   'UD': 1080, // 超高清
   'BD': 2160, // 蓝光
   'YH': 9999, // 原画

@@ -23,13 +23,13 @@ import './index.css'
  * 按顺序应用到每个文件项上
  */
 const itemMods = [
-  FileItemModFolderLink,     // 文件夹链接修改器
-  FileItemModExtInfo,        // 扩展信息修改器
-  FileItemModActressInfo,     // 演员信息修改器
-  FileItemModVideoCover,      // 视频封面修改器
-  FileItemModExtMenu,         // 扩展菜单修改器
-  FileItemModClickPlay,       // 点击播放修改器
-  FileItemModDownload,        // 下载功能修改器
+  FileItemModFolderLink, // 文件夹链接修改器
+  FileItemModExtInfo, // 扩展信息修改器
+  FileItemModActressInfo, // 演员信息修改器
+  FileItemModVideoCover, // 视频封面修改器
+  FileItemModExtMenu, // 扩展菜单修改器
+  FileItemModClickPlay, // 点击播放修改器
+  FileItemModDownload, // 下载功能修改器
 ]
 
 /**
@@ -96,9 +96,9 @@ class FileListMod extends BaseMod {
    */
   get listType(): FileListType {
     if (this.listContentsNode) {
-      return FileListType.list  // 列表视图
+      return FileListType.list // 列表视图
     }
-    return FileListType.grid   // 网格视图
+    return FileListType.grid // 网格视图
   }
 
   /**
@@ -187,7 +187,7 @@ class FileListMod extends BaseMod {
       itemModLoader.load()
       this.itemModLoaderMaps.set(item, itemModLoader)
     }
-    
+
     // 销毁旧 Item 修改器
     for (const [key, value] of this.itemModLoaderMaps.entries()) {
       // 如果 li Node 存在，则跳过

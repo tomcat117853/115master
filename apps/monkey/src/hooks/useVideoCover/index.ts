@@ -2,16 +2,16 @@
  * 视频封面 Hook
  * @description 提供智能视频封面加载功能，支持滚动加载和缓存
  */
-import type { Ref } from 'vue'  // Vue 的 Ref 类型
-import { useElementVisibility, useScroll } from '@vueuse/core'  // VueUse 工具库，提供元素可见性和滚动检测
-import { onUnmounted, reactive, watch } from 'vue'  // Vue 核心 API
-import { FRIENDLY_ERROR_MESSAGE } from '@/constants'  // 友好错误信息
-import { videoCoverCache } from '@/utils/cache'  // 视频封面缓存
-import { M3U8ClipperNew } from '@/utils/clipper/m3u8Clipper'  // M3U8 视频剪辑器
-import { drive115 } from '@/utils/drive115'  // 115 网盘 API
-import { Drive115Error } from '@/utils/drive115/core'  // 115 网盘错误类型
-import { getImageResize } from '@/utils/image'  // 图片尺寸调整工具
-import { Scheduler, SchedulerError, TaskStatus } from '@/utils/scheduler'  // 任务调度器
+import type { Ref } from 'vue' // Vue 的 Ref 类型
+import { useElementVisibility, useScroll } from '@vueuse/core' // VueUse 工具库，提供元素可见性和滚动检测
+import { onUnmounted, reactive, watch } from 'vue' // Vue 核心 API
+import { FRIENDLY_ERROR_MESSAGE } from '@/constants' // 友好错误信息
+import { videoCoverCache } from '@/utils/cache' // 视频封面缓存
+import { M3U8ClipperNew } from '@/utils/clipper/m3u8Clipper' // M3U8 视频剪辑器
+import { drive115 } from '@/utils/drive115' // 115 网盘 API
+import { Drive115Error } from '@/utils/drive115/core' // 115 网盘错误类型
+import { getImageResize } from '@/utils/image' // 图片尺寸调整工具
+import { Scheduler, SchedulerError, TaskStatus } from '@/utils/scheduler' // 任务调度器
 
 /** 最大宽度：视频封面的最大宽度（像素） */
 const MAX_WIDTH = 720
@@ -25,7 +25,7 @@ const MAX_HEIGHT = 720
  * @param maxConcurrent 最大并发数，设置为 3
  */
 const videoCoverScheduler = new Scheduler<VideoCover[]>({
-  maxConcurrent: 3,  // 最多同时加载 3 个视频的封面
+  maxConcurrent: 3, // 最多同时加载 3 个视频的封面
 })
 
 /**
@@ -142,8 +142,8 @@ function calculateVideoCoverTimes(duration: number, coverNum: number): number[] 
  */
 function toDisplayableData(rawData: VideoCoverRaw): VideoCover {
   return {
-    img: URL.createObjectURL(rawData.blob),  // 创建 blob URL 用于显示
-    ...rawData,  // 复制其他属性
+    img: URL.createObjectURL(rawData.blob), // 创建 blob URL 用于显示
+    ...rawData, // 复制其他属性
   }
 }
 
@@ -164,7 +164,8 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
     if (!result) {
       throw new Error('no clipper result')
     }
-  } catch (error) {
+  }
+  catch (error) {
     if (error instanceof Error && error.message === '时间超出范围') {
       /** 使用安全的时间点：视频时长的一半 */
       seekTime = clipper.hlsIo.duration / 2
@@ -172,7 +173,8 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
       if (!result) {
         throw new Error('no clipper result')
       }
-    } else {
+    }
+    else {
       throw error
     }
   }
@@ -195,9 +197,9 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
   // 绘制视频帧到画布：调整尺寸并绘制
   ctx.drawImage(
     await createImageBitmap(result.videoFrame, {
-      resizeQuality: 'pixelated',  // 调整质量
-      resizeWidth: resize.width,  // 调整宽度
-      resizeHeight: resize.height,  // 调整高度
+      resizeQuality: 'pixelated', // 调整质量
+      resizeWidth: resize.width, // 调整宽度
+      resizeHeight: resize.height, // 调整高度
     }),
     0,
     0,
@@ -207,8 +209,8 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
 
   /** 将画布转换为 blob：生成图片数据 */
   const blob = await canvas.convertToBlob({
-    type: 'image/webp',  // 使用 WebP 格式，压缩率高
-    quality: 0.85,  // 图片质量
+    type: 'image/webp', // 使用 WebP 格式，压缩率高
+    quality: 0.85, // 图片质量
   })
 
   // 关闭视频帧：释放资源
@@ -220,7 +222,7 @@ async function generateVideoCoverRaw(clipper: M3U8ClipperNew, time: number): Pro
     width: resize.width,
     height: resize.height,
     frameTime: result.frameTime,
-    seekTime,  // 使用实际的 seekTime
+    seekTime, // 使用实际的 seekTime
   }
   return raw
 }
@@ -238,7 +240,7 @@ async function getVideoCoversFromCache(sha1: string, times: number[]): Promise<V
     const cacheKey = getCacheKey(sha1, time)
     const cache = await videoCoverCache.get(cacheKey)
     if (!cache) {
-      return []  // 如果任何一个时间点的缓存未命中，就返回空数组
+      return [] // 如果任何一个时间点的缓存未命中，就返回空数组
     }
     const cacheData = cache.value
     covers.push(toDisplayableData(cacheData))
@@ -275,9 +277,10 @@ async function getVideoCover(sha1: string, pickCode: string, times: number[]): P
   /** 生成每个时间点的视频封面 */
   const promises = times.map(async (time) => {
     const cacheKey = getCacheKey(sha1, time)
-    const raw = await generateVideoCoverRaw(clipper, time)  // 生成原始数据
-    videoCoverCache.set(cacheKey, raw)  // 缓存原始数据
-    return toDisplayableData(raw)  // 转换为可显示数据
+    /** 生成原始数据 */
+    const raw = await generateVideoCoverRaw(clipper, time)
+    videoCoverCache.set(cacheKey, raw) // 缓存原始数据
+    return toDisplayableData(raw) // 转换为可显示数据
   })
 
   // 并行处理所有时间点，提高效率
@@ -292,7 +295,7 @@ async function getVideoCover(sha1: string, pickCode: string, times: number[]): P
 function cleanupBlobUrl(covers: string[]): void {
   covers.forEach((cover) => {
     if (cover.startsWith('blob:')) {
-      URL.revokeObjectURL(cover)  // 释放 blob URL
+      URL.revokeObjectURL(cover) // 释放 blob URL
     }
   })
 }
@@ -312,10 +315,10 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
     error: unknown
     state: VideoCover[]
   }>({
-    isReady: false,  // 是否准备就绪
-    isLoading: false,  // 是否正在加载
-    error: undefined,  // 错误信息
-    state: [],  // 视频封面数据数组
+    isReady: false, // 是否准备就绪
+    isLoading: false, // 是否正在加载
+    error: undefined, // 错误信息
+    state: [], // 视频封面数据数组
   })
 
   /** 任务ID：用于标识当前加载任务 */
@@ -329,9 +332,9 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
 
   /** 元素可见性：检测组件是否在视口中 */
   const visibility = useElementVisibility(config.elementRef, {
-    threshold: config.threshold ?? 0,  // 可见性阈值
-    rootMargin: config.rootMargin ?? '0%',  // 根边距
-    scrollTarget: config.scrollTarget,  // 滚动目标
+    threshold: config.threshold ?? 0, // 可见性阈值
+    rootMargin: config.rootMargin ?? '0%', // 根边距
+    scrollTarget: config.scrollTarget, // 滚动目标
   })
 
   /**
@@ -350,11 +353,11 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
   ) => {
     return videoCoverScheduler.add(
       () => {
-        return getVideoCover(sha1, pickCode, times)  // 执行视频封面获取
+        return getVideoCover(sha1, pickCode, times) // 执行视频封面获取
       },
       {
         id,
-        immediate: true,  // 立即执行
+        immediate: true, // 立即执行
       },
     )
   }
@@ -382,7 +385,7 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
       return
     }
 
-    // 如果任务已经存在，直接返回
+    /** 如果任务已经存在，直接返回 */
     const task = videoCoverScheduler.get(id)
     if (task) {
       return
@@ -391,10 +394,10 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
     // 开始加载
     videoCover.isLoading = true
     try {
-      // 添加任务到调度器并执行
+      /** 添加任务到调度器并执行 */
       const data = await addTask(id, options.sha1, options.pickCode, times)
-      videoCover.state = data  // 更新状态
-      videoCover.isReady = true  // 标记为就绪
+      videoCover.state = data // 更新状态
+      videoCover.isReady = true // 标记为就绪
     }
     catch (error) {
       // 处理取消任务错误
@@ -410,7 +413,7 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
       videoCover.error = error
     }
     finally {
-      videoCover.isLoading = false  // 结束加载
+      videoCover.isLoading = false // 结束加载
     }
   }
 
@@ -428,26 +431,26 @@ export function useSmartVideoCover(options: Ref<VideoCoverOptions>, config: Smar
     // 开始加载
     videoCover.isLoading = true
     try {
-      // 尝试从缓存获取
+      /** 尝试从缓存获取 */
       const data = await getVideoCoversFromCache(options.sha1, times)
       if (data.length > 0) {
-        videoCover.state = data  // 更新状态
-        videoCover.isLoading = false  // 结束加载
-        videoCover.isReady = true  // 标记为就绪
+        videoCover.state = data // 更新状态
+        videoCover.isLoading = false // 结束加载
+        videoCover.isReady = true // 标记为就绪
       }
     }
     catch (error) {
-      videoCover.error = error  // 处理错误
+      videoCover.error = error // 处理错误
     }
     finally {
-      videoCover.isLoading = false  // 结束加载
+      videoCover.isLoading = false // 结束加载
     }
   }
 
   /** 滚动检测：用于优化加载时机，避免滚动时加载影响性能 */
   const { isScrolling } = useScroll(config.scrollTarget, {
-    throttle: 1000 / 60,  // 节流，每帧最多执行一次
-    idle: 100,  // 滚动停止 100ms 后触发 onStop
+    throttle: 1000 / 60, // 节流，每帧最多执行一次
+    idle: 100, /** 滚动停止 100ms 后触发 onStop */
     onStop: async () => {
       // 滚动停止时，如果元素可见，则加载数据
       if (visibility.value) {

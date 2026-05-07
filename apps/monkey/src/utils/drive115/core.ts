@@ -159,17 +159,17 @@ export class Drive115Core {
     const lines = htmlText.split('\n')
     const m3u8List: M3u8Item[] = []
 
-    htmlText.split('\n').forEach((line, index) => {
+    lines.forEach((line, index) => {
       if (line.includes('NAME="')) {
         const extXStreamInf = line.match(/#EXT-X-STREAM-INF/)
         if (extXStreamInf) {
           const name = line.match(/NAME="([^"]*)"/)?.[1] ?? ''
-          const url = lines[index + 1]?.trim()
+          const streamUrl = lines[index + 1]?.trim()
           m3u8List.push({
             name,
             quality:
               qualityCodeMap[name as unknown as keyof typeof qualityCodeMap],
-            url: getXUrl(url),
+            url: getXUrl(streamUrl),
           })
         }
       }

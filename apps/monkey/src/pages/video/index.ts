@@ -65,7 +65,7 @@ export function setVideoCookie(cookieDetail: Parameters<typeof GM_cookie.set>[0]
     const iframe = document.createElement('iframe')
     iframe.src = `${DL_URL_115}/video/token`
     iframe.style.display = 'none'
-    
+
     window.addEventListener('message', (event) => {
       // 当 iframe 准备就绪时发送设置 Cookie 的请求
       if (event.origin === DL_URL_115 && event.data.event === 'ready') {
@@ -92,7 +92,7 @@ export function setVideoCookie(cookieDetail: Parameters<typeof GM_cookie.set>[0]
         iframe.remove()
       }
     })
-    
+
     document.body.appendChild(iframe)
   })
 }
@@ -109,7 +109,7 @@ export function videoTokenPage() {
     },
     NORMAL_URL_115,
   )
-  
+
   // 监听来自父窗口的消息
   window.addEventListener('message', (event) => {
     if (event.origin === NORMAL_URL_115 && event.data.event === 'set-cookies') {
@@ -133,19 +133,19 @@ export function videoTokenPage() {
  */
 export async function videoPage() {
   resetDocument()
-  
-  // 添加主样式
+
+  /** 添加主样式 */
   const style = document.createElement('style')
   style.textContent = mainStyles
   style.dataset.v = 'style_css'
-  
+
   // 热更新支持
   if (import.meta.hot) {
     import.meta.hot.accept('@/styles/main.css?inline', (newModule) => {
       style.textContent = newModule?.default || ''
     })
   }
-  
+
   document.head.append(style)
 
   // 创建并挂载 Vue 应用

@@ -4,14 +4,14 @@
  */
 
 // 导入依赖
-import { TEST_VALUE } from '@115master/shared'  // 测试 monorepo 共享包引用
-import globToRegex from 'glob-to-regexp'  // 用于将 glob 模式转换为正则表达式
-import ROUTE_MATCH from './constants/route.match'  // 路由匹配模式
-import HomePage from './pages/home/index'  // 首页
-import { magnetPage, registerMagnetProtocolHandler } from './pages/magnet'  // 磁力链接相关
-import { videoPage, videoTokenPage } from './pages/video'  // 视频页相关
-import { checkUserAgent } from './utils/checkUserAgent'  // 检查用户代理
-import { debugInfo } from './utils/debugInfo'  // 调试信息
+import { TEST_VALUE } from '@115master/shared' // 测试 monorepo 共享包引用
+import globToRegex from 'glob-to-regexp' // 用于将 glob 模式转换为正则表达式
+import ROUTE_MATCH from './constants/route.match' // 路由匹配模式
+import HomePage from './pages/home/index' // 首页
+import { magnetPage, registerMagnetProtocolHandler } from './pages/magnet' // 磁力链接相关
+import { videoPage, videoTokenPage } from './pages/video' // 视频页相关
+import { checkUserAgent } from './utils/checkUserAgent' // 检查用户代理
+import { debugInfo } from './utils/debugInfo' // 调试信息
 
 // 打印共享包测试信息
 console.log('[115Master] Shared package:', TEST_VALUE)
@@ -55,23 +55,23 @@ registerMagnetProtocolHandler()
 const routeMatch = [
   /** 首页路由 */
   {
-    match: ROUTE_MATCH.HOME,  // 匹配首页路径
-    exec: () => new HomePage(),  // 执行首页初始化
+    match: ROUTE_MATCH.HOME, /** 匹配首页路径 */
+    exec: () => new HomePage(), // 执行首页初始化
   },
   /** 视频页路由 */
   {
-    match: ROUTE_MATCH.VIDEO,  // 匹配视频页路径
-    exec: () => videoPage(),  // 执行视频页初始化
+    match: ROUTE_MATCH.VIDEO, /** 匹配视频页路径 */
+    exec: () => videoPage(), // 执行视频页初始化
   },
   /** 视频页（token中转）路由 */
   {
-    match: ROUTE_MATCH.VIDEO_TOKEN,  // 匹配视频 token 中转页路径
-    exec: () => videoTokenPage(),  // 执行视频 token 中转页初始化
+    match: ROUTE_MATCH.VIDEO_TOKEN, /** 匹配视频 token 中转页路径 */
+    exec: () => videoTokenPage(), // 执行视频 token 中转页初始化
   },
   /** 磁力链接页路由 */
   {
-    match: ROUTE_MATCH.MAGNET,  // 匹配磁力链接页路径
-    exec: () => magnetPage(),  // 执行磁力链接页初始化
+    match: ROUTE_MATCH.MAGNET, /** 匹配磁力链接页路径 */
+    exec: () => magnetPage(), // 执行磁力链接页初始化
   },
 ]
 
@@ -96,10 +96,10 @@ function main() {
  *              否则，监听 DOMContentLoaded 事件，在文档加载完成后执行
  */
 if (
-  document.readyState === 'complete'  // 文档已完全加载
-  || document.readyState === 'interactive'  // 文档已加载，正在交互
+  document.readyState === 'complete' // 文档已完全加载
+  || document.readyState === 'interactive' // 文档已加载，正在交互
 ) {
-  main()  // 立即执行主函数
+  main() // 立即执行主函数
 }
 else {
   // 监听 DOMContentLoaded 事件，在文档加载完成后执行主函数

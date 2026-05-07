@@ -39,14 +39,14 @@ async function loadScriptsInOrder(urls: string[]): Promise<void> {
   }
 }
 
-async function loadStyle(href: string) {
+function loadStyle(href: string) {
   const style = document.createElement('link')
   style.rel = 'stylesheet'
   style.href = href
   document.head.appendChild(style)
 }
 
-async function loadStyles(urls: string[]): Promise<void> {
+function loadStyles(urls: string[]): void {
   for (const url of urls) {
     loadStyle(url)
   }
